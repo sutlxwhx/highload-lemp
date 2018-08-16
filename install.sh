@@ -1,16 +1,17 @@
 #!/usr/bin/env bash
 #
 # Follow up commands are best suitable for clean Ubuntu 16.04 installation
+# All commands are executed by the root user
 # Nginx library is installed from custom ppa/ repository
 # https://launchpad.net/~hda-me/+archive/ubuntu/nginx-stable
 # This will not be available for any other OS rather then Ubuntu
 #
+# Disable user promt
+DEBIAN_FRONTEND=noninteractive
 # Update list of available packages
 apt-get update -y
 # Update installed packages
-sudo apt-mark hold grub
-apt-get dist-upgrade -y
-sudo apt-mark unhold grub
+apt-get DPkg::options::="--force-confdef" -o DPkg::options::="--force-confold" dist-upgrade -y
 # Install the most common packages that will be usefull under development environment
 apt-get install zip unzip fail2ban htop sqlite3 nload mlocate nano memcached python-software-properties software-properties-common -y
 # Install Nginx && PHP-FPM stack
@@ -65,6 +66,10 @@ apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74C
 add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ams2.mirrors.digitalocean.com/mariadb/repo/10.2/ubuntu xenial main' -y
 # Update list of available packages
 apt-get update -y
+# Use md5 hash of your hostname to define a root password for MariDB
+password=$(hostname | md5sum | awk '{print $1}')
+debconf-set-selections <<< 'mariadb-server-10.0 mysql-server/root_password password $password'
+debconf-set-selections <<< 'mariadb-server-10.0 mysql-server/root_password_again password $password'
 # Install MariaDB package
 apt-get install mariadb-server -y
 # Add custom configuration for your Mysql
@@ -77,10 +82,10 @@ apt-get install mysqltuner -y
 # Create default folder for future websites
 mkdir /var/www
 # Create Hello World page
-mkdir /var/www/example.com
-echo -e "<html>\n<body>\n<h1>Hello World!<h1>\n</body>\n</html>" > /var/www/example.com/index.html
+mkdir /var/www/test.com
+echo -e "<html>\n<body>\n<h1>Hello World!<h1>\n</body>\n</html>" > /var/www/test.com/index.html
 # Create phpinfo page
-echo -e "<?php phpinfo();" > /var/www/example.com/info.php
+echo -e "<?php phpinfo();" > /var/www/test.com/info.php
 # Give Nginx permissions to be able to access these websites
 chown -R www-data:www-data /var/www/*
 # Maximize the limits of file system usage
@@ -120,9 +125,9 @@ sed -i "s/^;ping.path = \/ping/ping.path = \/ping/" /etc/php/7.0/fpm/pool.d/www.
 # Reload PHP-FPM installation
 /etc/init.d/php7.0-fpm reload
 # Install a Monit service in order to maintain system fault tolerance
-apt-get install Monit -y
+apt-get install monit -y
 # Create a full backup of default Monit configuration
-cp -r /etc/Monit/ /backup/$now/Monit/
+cp -r /etc/monit/ /backup/$now/monit/
 # Set time interval in which Monit will check the services
 sed -i "s/^set daemon 120/set daemon 10/" /etc/monit/monitrc
 # Set port on which Monit will be listening
@@ -139,25 +144,25 @@ iptables -A INPUT -p tcp -m tcp --dport 2812 -j ACCEPT
 # Monit will check the availability of php7.0-fpm.sock
 # And restart php7.0-fpm service if it can't be accesible
 # If Monit tries to many times to restart it withour success it will take a timeout and then procced to restart again
-echo -e 'check process php7.0-fpm with pidfile /var/run/php/php7.0-fpm.pid\nstart program = "/etc/init.d/php7.0-fpm start"\nstop program = "/etc/init.d/php7.0-fpm stop"\nif failed unixsocket /run/php/php7.0-fpm.sock then restart\nif 5 restarts within 5 cycles then timeout' > /etc/Monit/conf.d/php7.0-fpm.conf
+echo -e 'check process php7.0-fpm with pidfile /var/run/php/php7.0-fpm.pid\nstart program = "/etc/init.d/php7.0-fpm start"\nstop program = "/etc/init.d/php7.0-fpm stop"\nif failed unixsocket /run/php/php7.0-fpm.sock then restart\nif 5 restarts within 5 cycles then timeout' > /etc/monit/conf.d/php7.0-fpm.conf
 # Create a Monit configuration file to watch after Nginx
 # This one doesn't need Monit to restart it because Nginx is basically unbreakable
-echo -e 'check process nginx with pidfile /var/run/nginx.pid\nstart program = "/etc/init.d/nginx start"\nstop program = "/etc/init.d/nginx stop"' > /etc/Monit/conf.d/nginx.conf
+echo -e 'check process nginx with pidfile /var/run/nginx.pid\nstart program = "/etc/init.d/nginx start"\nstop program = "/etc/init.d/nginx stop"' > /etc/monit/conf.d/nginx.conf
 # Create a Monit configuration file to watch after MariaDB
 # Monit will check the availability of mysqld.sock
 # And restart mysql service if it can't be accesible
 # If Monit tries to many times to restart it withour success it will take a timeout and then procced to restart again
-echo -e 'check process mysql with pidfile /run/mysqld/mysqld.pid\nstart program = "/usr/sbin/service mysql start"\nstop program  = "/usr/sbin/service mysql stop"\nif failed unixsocket /var/run/mysqld/mysqld.sock then restart\nif 5 restarts within 5 cycles then timeout' > /etc/Monit/conf.d/mariadb.conf
+echo -e 'check process mysql with pidfile /run/mysqld/mysqld.pid\nstart program = "/usr/sbin/service mysql start"\nstop program  = "/usr/sbin/service mysql stop"\nif failed unixsocket /var/run/mysqld/mysqld.sock then restart\nif 5 restarts within 5 cycles then timeout' > /etc/monit/conf.d/mariadb.conf
 # Create a Monit configuration file to watch after SSH
 # This is a fool safe tool if you occasionally restarted ssh proccess and can't get into your server again
-echo -e 'check process sshd with pidfile /var/run/sshd.pid\nstart program "/etc/init.d/ssh start"\nstop program "/etc/init.d/ssh stop"\nrestart program = "/etc/init.d/ssh restart"\nif failed port 22 protocol ssh then restart\nif 5 restarts within 5 cycles then timeout' > /etc/Monit/conf.d/sshd.conf
+echo -e 'check process sshd with pidfile /var/run/sshd.pid\nstart program "/etc/init.d/ssh start"\nstop program "/etc/init.d/ssh stop"\nrestart program = "/etc/init.d/ssh restart"\nif failed port 22 protocol ssh then restart\nif 5 restarts within 5 cycles then timeout' > /etc/monit/conf.d/sshd.conf
 # Create a Monit configuration file to watch after Memcached
-echo -e 'check process memcached with match memcached\ngroup memcache\nstart program = "/etc/init.d/memcached start"\nstop program = "/etc/init.d/memcached stop"' > /etc/Monit/conf.d/memcached.conf
+echo -e 'check process memcached with match memcached\ngroup memcache\nstart program = "/etc/init.d/memcached start"\nstop program = "/etc/init.d/memcached stop"' > /etc/monit/conf.d/memcached.conf
 # Reload main Monit configuration
-update-rc.d Monit enable
+update-rc.d monit enable
 # Reload Monit in order to pickup new included *.conf files
-Monit reload
+monit reload
 # Tell Monit to start all services
-Monit start all
+monit start all
 # Tell Monit to Monitor all services
-Monit Monitor all
+monit monitor all
