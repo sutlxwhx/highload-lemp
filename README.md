@@ -16,6 +16,7 @@ Every command is well commented so you will know what will happend after each li
 
 ## Requirements
 * Ubuntu 16.04 or later
+* This script utilises root user privileges. If you run it from another user you need to add this user to sudoers group and add sudo to all commands in the script
 
 ## Usage
 
