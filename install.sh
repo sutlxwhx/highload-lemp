@@ -8,7 +8,9 @@
 # Update list of available packages
 apt-get update -y
 # Update installed packages
+sudo apt-mark hold grub
 apt-get dist-upgrade -y
+sudo apt-mark unhold grub
 # Install the most common packages that will be usefull under development environment
 apt-get install zip unzip fail2ban htop sqlite3 nload mlocate nano memcached python-software-properties software-properties-common -y
 # Install Nginx && PHP-FPM stack
