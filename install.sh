@@ -149,6 +149,8 @@ sed -i "s/^;opcache.force_restart_timeout=180/opcache.force_restart_timeout=30/"
 /etc/init.d/nginx reload 
 # Reload PHP-FPM installation
 /etc/init.d/php7.0-fpm reload
+# Add a rule for iptables in order to make Monit be able to work on this port
+iptables -A INPUT -p tcp -m tcp --dport 2812 -j ACCEPT
 # Install a Monit service in order to maintain system fault tolerance
 # Using ver. 1:5.16-2 because of the bug in the last version https://bugs.launchpad.net/ubuntu/+source/monit/+bug/1786910
 apt-get install monit=1:5.16-2 -y -q
@@ -167,8 +169,6 @@ sed -i "s/^#.*allow localhost.*/allow localhost/" /etc/monit/monitrc
 sed -i "s/^#.*allow admin:monit.*/allow admin:monit/" /etc/monit/monitrc
 # Tell monit to not search *.conf files in this directory
 sed -i "s/^.*include \/etc\/monit\/conf-enabled\/\*/#include \/etc\/monit\/conf-enabled\/\*/" /etc/monit/monitrc
-# Add a rule for iptables in order to make Monit be able to work on this port
-iptables -A INPUT -p tcp -m tcp --dport 2812 -j ACCEPT
 # Create a Monit configuration file to watch after PHP-FPM
 # Monit will check the availability of php7.0-fpm.sock
 # And restart php7.0-fpm service if it can't be accesible
