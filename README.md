@@ -45,10 +45,10 @@ php -m
 ```
 This will show current PHP-FPM version all installed PHP-FPM modules.
 ```shell
-mysql -v &&
+mysql -v
 EXIT;
 ```
-This will show current MariaDB version all promt EXIT; command if you entered MariaDB shell.
+This will show current MariaDB version and promt EXIT; command if you entered MariaDB shell.
 
 ## Developing
 Please, feel free to fork this repository and add support for your OS. It will greatly help developers who prefer another OS / Platforms. I' am not doing this myself because I found that using prebuilt custom Ubuntu repository makes usage of this script endlessly faster with less head pain then trying to define why Nginx package is not compiling from the source code on another particular OS / Platform.
