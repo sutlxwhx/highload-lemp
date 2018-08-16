@@ -18,7 +18,8 @@ apt-get install zip unzip fail2ban htop sqlite3 nload mlocate nano memcached pyt
 apt-get install php7.0-curl php7.0-fpm php7.0-gd php7.0-mbstring php7.0-mcrypt php7.0-opcache php7.0-xml php7.0-sqlite php7.0-mysql php-imagick -y
 # Create a folder to backup current installation of Nginx && PHP-FPM
 now=$(date +"%Y-%m-%d_%H-%M-%S") 
-mkdir /backup/$now/
+mkdir /backup/
+mkdir /backup/$now/nginx/ && mkdir /backup/$now/php/
 # Create a full backup of previous Nginx configuration
 cp -r /etc/nginx/ /backup/$now/nginx/ 
 # Create a full backup of previous PHP configuration
@@ -68,8 +69,8 @@ add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ams2.mirrors.digitaloce
 apt-get update -y
 # Use md5 hash of your hostname to define a root password for MariDB
 password=$(hostname | md5sum | awk '{print $1}')
-debconf-set-selections <<< 'mariadb-server-10.0 mysql-server/root_password password $password'
-debconf-set-selections <<< 'mariadb-server-10.0 mysql-server/root_password_again password $password'
+debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password password $password"
+debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $password"
 # Install MariaDB package
 apt-get install mariadb-server -y
 # Add custom configuration for your Mysql
@@ -84,6 +85,8 @@ mkdir /var/www
 # Create Hello World page
 mkdir /var/www/test.com
 echo -e "<html>\n<body>\n<h1>Hello World!<h1>\n</body>\n</html>" > /var/www/test.com/index.html
+# Create opcache page
+wget -o /var/www/test.com/ https://github.com/rlerdorf/opcache-status/blob/master/opcache.php
 # Create phpinfo page
 echo -e "<?php phpinfo();" > /var/www/test.com/info.php
 # Give Nginx permissions to be able to access these websites
@@ -120,6 +123,26 @@ sed -i "s/^;pm.process_idle_timeout = .*/pm.process_idle_timeout = 10s;/" /etc/p
 sed -i "s/^;pm.status_path = \/status/pm.status_path = \/status/" /etc/php/7.0/fpm/pool.d/www.conf
 # Create a /ping path for your PHP-FPM installation in order to be able to make heartbeat calls to it
 sed -i "s/^;ping.path = \/ping/ping.path = \/ping/" /etc/php/7.0/fpm/pool.d/www.conf
+# Enable PHP-FPM Opcache
+sed -i "s/^;opcache.enable=0/opcache.enable=1" /etc/php/7.0/fpm/php.ini
+# Set maximum memory limit for OPcache
+sed -i "s/^;opcache.memory_consumption=64/opcache.memory_consumption=64" /etc/php/7.0/fpm/php.ini
+# Raise the maximum limit of variable that can be stored in OPcache
+sed -i "s/^;opcache.interned_strings_buffer=4/opcache.interned_strings_buffer=16" /etc/php/7.0/fpm/php.ini
+# Set maximum amount fo files to be cached in OPcache
+sed -i "s/^;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=65536" /etc/php/7.0/fpm/php.ini
+# Enabled using directory path in order to avoid collision between two files with identical names in OPcache
+sed -i "s/^;opcache.use_cwd=1/opcache.use_cwd=1" /etc/php/7.0/fpm/php.ini
+# Enable validation of changes in php files
+sed -i "s/^;opcache.validate_timestamps=1/opcache.validate_timestamps=1" /etc/php/7.0/fpm/php.ini
+# Set validation period in seconds for OPcache file
+sed -i "s/^;opcache.revalidate_freq=2/opcache.revalidate_freq=2" /etc/php/7.0/fpm/php.ini
+# Disable comments to be put in OPcache code
+sed -i "s/^;opcache.save_comments=1/opcache.save_comments=0" /etc/php/7.0/fpm/php.ini
+# Enable fast shutdown
+sed -i "s/^;opcache.fast_shutdown=0/opcache.fast_shutdown=1" /etc/php/7.0/fpm/php.ini
+# Set period in seconds in which PHP-FPM should restart if OPcache is not accessible
+sed -i "s/^;opcache.force_restart_timeout=180/opcache.force_restart_timeout=30" /etc/php/7.0/fpm/php.ini
 # Reload Nginx installation
 /etc/init.d/nginx reload 
 # Reload PHP-FPM installation
@@ -127,6 +150,9 @@ sed -i "s/^;ping.path = \/ping/ping.path = \/ping/" /etc/php/7.0/fpm/pool.d/www.
 # Install a Monit service in order to maintain system fault tolerance
 apt-get install monit -y
 # Create a full backup of default Monit configuration
+now=$(date +"%Y-%m-%d_%H-%M-%S") 
+mkdir /backup/$now/
+mkdir /backup/$now/monit/
 cp -r /etc/monit/ /backup/$now/monit/
 # Set time interval in which Monit will check the services
 sed -i "s/^set daemon 120/set daemon 10/" /etc/monit/monitrc
