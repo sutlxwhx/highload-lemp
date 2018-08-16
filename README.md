@@ -3,8 +3,8 @@
 ## Features
 * All-in-one one click installation of the LEMP environment
 * Nginx will be installed with all available modules, you just need to turn them on
-* I went through (Nginx docs)[https://nginx.org/en/docs/http/ngx_http_core_module.html] and customised default variables for maximum Nginx perfomance while adding new configuration lines
-* I went through (MariaDB docs)(https://mariadb.com/kb/en/library/server-system-variables/) and customised default variables for maximum MariaDB perfomance while adding new configuration lines
+* I went through [Nginx docs](https://nginx.org/en/docs/http/ngx_http_core_module.html) and customised default variables for maximum Nginx perfomance while adding new configuration lines
+* I went through [MariaDB docs](https://mariadb.com/kb/en/library/server-system-variables/) and customised default variables for maximum MariaDB perfomance while adding new configuration lines
 * Monit will be used to maximize LEMP fault taulerance
 * This configurated was tested in heavy loaded environment (>500k requests to webserver a day)
 
