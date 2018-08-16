@@ -9,13 +9,13 @@
 # Disable user promt
 DEBIAN_FRONTEND=noninteractive
 # Update list of available packages
-apt-get update -y
+apt-get update -y -q
 # Update installed packages
-apt-get DPkg::options::="--force-confdef" -o DPkg::options::="--force-confold" dist-upgrade -y
+apt-get DPkg::options::="--force-confdef" -o DPkg::options::="--force-confold" dist-upgrade -y -q
 # Install the most common packages that will be usefull under development environment
-apt-get install zip unzip fail2ban htop sqlite3 nload mlocate nano memcached python-software-properties software-properties-common -y
+apt-get install zip unzip fail2ban htop sqlite3 nload mlocate nano memcached python-software-properties software-properties-common -y -q
 # Install Nginx && PHP-FPM stack
-apt-get install php7.0-curl php7.0-fpm php7.0-gd php7.0-mbstring php7.0-mcrypt php7.0-opcache php7.0-xml php7.0-sqlite php7.0-mysql php-imagick -y
+apt-get install php7.0-curl php7.0-fpm php7.0-gd php7.0-mbstring php7.0-mcrypt php7.0-opcache php7.0-xml php7.0-sqlite php7.0-mysql php-imagick -y -q
 # Create a folder to backup current installation of Nginx && PHP-FPM
 now=$(date +"%Y-%m-%d_%H-%M-%S") 
 mkdir /backup/
@@ -25,18 +25,18 @@ cp -r /etc/nginx/ /backup/$now/nginx/
 # Create a full backup of previous PHP configuration
 cp -r /etc/php/ /backup/$now/php/
 # Delete previous Nginx installation
-apt-get purge nginx-core nginx-common nginx -y
-apt-get autoremove -y
+apt-get purge nginx-core nginx-common nginx -y -q
+apt-get autoremove -y -q
 # Add custom repository for Nginx
-apt-add-repository ppa:hda-me/nginx-stable -y
+apt-add-repository ppa:hda-me/nginx-stable -y -q
 # Update list of available packages
-apt-get update -y
+apt-get update -y -q
 # Install custom Nginx package
-apt-get install nginx -y
+apt-get install nginx -y -q
 systemctl unmask nginx.service
 # Install Brottli package for Nginx
 # https://blog.cloudflare.com/results-experimenting-brotli/
-apt-get install nginx-module-brotli -y
+apt-get install nginx-module-brotli -y -q
 # Disable extrenal access to PHP-FPM scripts
 sed -i "s/^;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/7.0/fpm/php.ini
 # Create an additional configurational folder for Nginx
@@ -64,29 +64,31 @@ echo -e "-a 775" >> /etc/memcached.conf
 service memcached restart
 # Add repository for MariaDB 10.2
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
-add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ams2.mirrors.digitalocean.com/mariadb/repo/10.2/ubuntu xenial main' -y
+add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ams2.mirrors.digitalocean.com/mariadb/repo/10.2/ubuntu xenial main' -y -q
 # Update list of available packages
-apt-get update -y
+apt-get update -y -q
 # Use md5 hash of your hostname to define a root password for MariDB
 password=$(hostname | md5sum | awk '{print $1}')
 debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password password $password"
 debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $password"
 # Install MariaDB package
-apt-get install mariadb-server -y
+apt-get install mariadb-server -y -q
 # Add custom configuration for your Mysql
 # All modified variables are available at https://mariadb.com/kb/en/library/server-system-variables/
 echo -e "\n[mysqld]\nmax_connections=24\nconnect_timeout=10\nwait_timeout=10\nthread_cache_size=24\nsort_buffer_size=1M\njoin_buffer_size=1M\ntmp_table_size=8M\nmax_heap_table_size=1M\nbinlog_cache_size=8M\nbinlog_stmt_cache_size=8M\nkey_buffer_size=1M\ntable_open_cache=64\nread_buffer_size=1M\nquery_cache_limit=1M\nquery_cache_size=8M\nquery_cache_type=1\ninnodb_buffer_pool_size=8M\ninnodb_open_files=1024\ninnodb_io_capacity=1024\ninnodb_buffer_pool_instances=1" >> /etc/mysql/my.cnf
+# Write down current password for MariaDB in my.cnf
+echo -e "\n[client]\nuser = root\npassword = $password" >> /etc/mysql/my.cnf
 # Restart MariaDB
 service mysql restart
 # Install Mysqltuner for future improvements of MariaDB installation
-apt-get install mysqltuner -y
+apt-get install mysqltuner -y -q
 # Create default folder for future websites
 mkdir /var/www
 # Create Hello World page
 mkdir /var/www/test.com
 echo -e "<html>\n<body>\n<h1>Hello World!<h1>\n</body>\n</html>" > /var/www/test.com/index.html
 # Create opcache page
-wget -o /var/www/test.com/ https://github.com/rlerdorf/opcache-status/blob/master/opcache.php
+wget -O /var/www/test.com/opcache.php https://github.com/rlerdorf/opcache-status/blob/master/opcache.php
 # Create phpinfo page
 echo -e "<?php phpinfo();" > /var/www/test.com/info.php
 # Give Nginx permissions to be able to access these websites
@@ -124,44 +126,44 @@ sed -i "s/^;pm.status_path = \/status/pm.status_path = \/status/" /etc/php/7.0/f
 # Create a /ping path for your PHP-FPM installation in order to be able to make heartbeat calls to it
 sed -i "s/^;ping.path = \/ping/ping.path = \/ping/" /etc/php/7.0/fpm/pool.d/www.conf
 # Enable PHP-FPM Opcache
-sed -i "s/^;opcache.enable=0/opcache.enable=1" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.enable=0/opcache.enable=1/" /etc/php/7.0/fpm/php.ini
 # Set maximum memory limit for OPcache
-sed -i "s/^;opcache.memory_consumption=64/opcache.memory_consumption=64" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.memory_consumption=64/opcache.memory_consumption=64/" /etc/php/7.0/fpm/php.ini
 # Raise the maximum limit of variable that can be stored in OPcache
-sed -i "s/^;opcache.interned_strings_buffer=4/opcache.interned_strings_buffer=16" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.interned_strings_buffer=4/opcache.interned_strings_buffer=16/" /etc/php/7.0/fpm/php.ini
 # Set maximum amount fo files to be cached in OPcache
-sed -i "s/^;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=65536" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.max_accelerated_files=2000/opcache.max_accelerated_files=65536/" /etc/php/7.0/fpm/php.ini
 # Enabled using directory path in order to avoid collision between two files with identical names in OPcache
-sed -i "s/^;opcache.use_cwd=1/opcache.use_cwd=1" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.use_cwd=1/opcache.use_cwd=1/" /etc/php/7.0/fpm/php.ini
 # Enable validation of changes in php files
-sed -i "s/^;opcache.validate_timestamps=1/opcache.validate_timestamps=1" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.validate_timestamps=1/opcache.validate_timestamps=1/" /etc/php/7.0/fpm/php.ini
 # Set validation period in seconds for OPcache file
-sed -i "s/^;opcache.revalidate_freq=2/opcache.revalidate_freq=2" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.revalidate_freq=2/opcache.revalidate_freq=2/" /etc/php/7.0/fpm/php.ini
 # Disable comments to be put in OPcache code
-sed -i "s/^;opcache.save_comments=1/opcache.save_comments=0" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.save_comments=1/opcache.save_comments=0/" /etc/php/7.0/fpm/php.ini
 # Enable fast shutdown
-sed -i "s/^;opcache.fast_shutdown=0/opcache.fast_shutdown=1" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.fast_shutdown=0/opcache.fast_shutdown=1/" /etc/php/7.0/fpm/php.ini
 # Set period in seconds in which PHP-FPM should restart if OPcache is not accessible
-sed -i "s/^;opcache.force_restart_timeout=180/opcache.force_restart_timeout=30" /etc/php/7.0/fpm/php.ini
+sed -i "s/^;opcache.force_restart_timeout=180/opcache.force_restart_timeout=30/" /etc/php/7.0/fpm/php.ini
 # Reload Nginx installation
 /etc/init.d/nginx reload 
 # Reload PHP-FPM installation
 /etc/init.d/php7.0-fpm reload
 # Install a Monit service in order to maintain system fault tolerance
-apt-get install monit -y
+apt-get install monit -y -q
 # Create a full backup of default Monit configuration
 now=$(date +"%Y-%m-%d_%H-%M-%S") 
 mkdir /backup/$now/
 mkdir /backup/$now/monit/
 cp -r /etc/monit/ /backup/$now/monit/
 # Set time interval in which Monit will check the services
-sed -i "s/^set daemon 120/set daemon 10/" /etc/monit/monitrc
+sed -i "s/^.*set daemon 120/set daemon 10/" /etc/monit/monitrc
 # Set port on which Monit will be listening
 sed -i "s/^#.*set httpd port 2812 and/set httpd port 2812 and/" /etc/monit/monitrc
 # Set credentials for Monit to autentithicate itself on the server
-sed -i "s/^#.*use address localhost/set httpd port 2812 and/" /etc/monit/monitrc
-sed -i "s/^#.*allow localhost/set httpd port 2812 and/" /etc/monit/monitrc
-sed -i "s/^#.*allow admin:monit/set httpd port 2812 and/" /etc/monit/monitrc
+sed -i "s/^#.*use address localhost/use address localhost/" /etc/monit/monitrc
+sed -i "s/^#.*allow localhost/allow localhost/" /etc/monit/monitrc
+sed -i "s/^#.*allow admin:monit/allow admin:monit/" /etc/monit/monitrc
 # Tell monit to not search *.conf files in this directory
 sed -i "s/^.*include \/etc\/monit\/conf-enabled\/\*/#include \/etc\/monit\/conf-enabled\/\*/" /etc/monit/monitrc
 # Add a rule for iptables in order to make Monit be able to work on this port
