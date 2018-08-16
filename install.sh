@@ -28,7 +28,7 @@ cp -r /etc/php/ /backup/$now/php/
 apt-get purge nginx-core nginx-common nginx -y -q
 apt-get autoremove -y -q
 # Add custom repository for Nginx
-apt-add-repository ppa:hda-me/nginx-stable -y -q
+apt-add-repository ppa:hda-me/nginx-stable -y
 # Update list of available packages
 apt-get update -y -q
 # Install custom Nginx package
@@ -64,7 +64,7 @@ echo -e "-a 775" >> /etc/memcached.conf
 service memcached restart
 # Add repository for MariaDB 10.2
 apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
-add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ams2.mirrors.digitalocean.com/mariadb/repo/10.2/ubuntu xenial main' -y -q
+add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ams2.mirrors.digitalocean.com/mariadb/repo/10.2/ubuntu xenial main' -y
 # Update list of available packages
 apt-get update -y -q
 # Use md5 hash of your hostname to define a root password for MariDB
@@ -195,3 +195,5 @@ monit reload
 monit start all
 # Tell Monit to Monitor all services
 monit monitor all
+# Get status of processes watched by Monit
+monit status
