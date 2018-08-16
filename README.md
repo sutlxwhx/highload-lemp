@@ -35,7 +35,11 @@ For example you created an A-record in your DNS panel where you pointed '@' name
 
 **MariaDB password** is generated using md5 hash of your server hostname and will be put in your /etc/mysql/my.cnf after [client] directive. 
 
-This script will create 'Hello World' website in /var/www/test.com and phpinfo file at /var/www/test.com/info.php
+## Test files that will be created
+
+* 'Hello World' website in /var/www/test.com 
+* phpinfo(); file at /var/www/test.com/info.php
+* [opcache.php](https://github.com/rlerdorf/opcache-status) at /var/www/test.com/opcache.php
 
 You can verify the installation with this info.php or use the following commands:
 ```shell
