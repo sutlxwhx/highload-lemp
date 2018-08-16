@@ -1,12 +1,12 @@
 # Highload LEMP Installation
 
 ## Features
-* All-in-one one click installation of the LEMP environment
+* All-in-one one click installation of the [LEMP](https://en.wikipedia.org/wiki/LAMP_(software_bundle)) environment
 * Nginx will be installed with all available modules, you just need to turn them on
-* I went through [Nginx docs](https://nginx.org/en/docs/http/ngx_http_core_module.html) and customised default variables for maximum Nginx perfomance while adding new configuration lines
-* I went through [MariaDB docs](https://mariadb.com/kb/en/library/server-system-variables/) and customised default variables for maximum MariaDB perfomance while adding new configuration lines
-* Monit will be used to maximize LEMP fault taulerance
-* This configurated was tested in heavy loaded environment (>500k requests to webserver a day)
+* I went through [Nginx](https://nginx.org/en/docs/http/ngx_http_core_module.html) docs and customised default variables for maximum Nginx perfomance while adding new configuration lines
+* I went through [MariaDB](https://mariadb.com/kb/en/library/server-system-variables/) docs and customised default variables for maximum MariaDB perfomance while adding new configuration lines
+* [Monit](https://mmonit.com/monit/) will be used to maximize LEMP fault taulerance
+* This configurated was tested in heavy loaded environment (>500k requests to a webserver a day)
 
 ## Getting started
 Every command is well commented so you will know what will happend after each line of code. Feel free to modify this bash script and to add new OS / Platform support.
