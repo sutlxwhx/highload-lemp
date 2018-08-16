@@ -8,8 +8,8 @@ This bash script will install LEMP stack on your Ubuntu and configure it to maxi
 * I went through [Nginx](https://nginx.org/en/docs/http/ngx_http_core_module.html) docs and customised default variables for maximum Nginx perfomance while adding new configuration lines
 * I went through [MariaDB](https://mariadb.com/kb/en/library/server-system-variables/) docs and customised default variables for maximum MariaDB perfomance while adding new configuration lines
 * [Monit](https://mmonit.com/monit/) will be used to maximize LEMP fault taulerance
-* This configurated was tested in heavy loaded environment (>500k requests to a webserver a day)
-* Don't struggle anymore with adding new server blocks to Nginx when you add new website to your server
+* This configuration was tested in heavy loaded environment (>500k requests to a webserver a day)
+* Don't struggle anymore with adding new server blocks to Nginx when you add new websites to your server
 
 ## Getting started
 Every command is well commented so you will know what will happend after each line of code. Feel free to modify this bash script and to add new OS / Platform support.
