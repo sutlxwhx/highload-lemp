@@ -46,7 +46,7 @@ mkdir /etc/nginx/conf.d
 wget -O /etc/nginx/conf.d/blacklist.conf https://raw.githubusercontent.com/mariusv/nginx-badbot-blocker/master/blacklist.conf
 wget -O /etc/nginx/conf.d/blockips.conf https://raw.githubusercontent.com/mariusv/nginx-badbot-blocker/master/blockips.conf
 # Create default file for Nginx for where to find new websites that are pointed to this IP
-echo -e 'server {\n\tlisten 80;\n\tserver_name $host;\n\troot /var/www/$host;\n\tindex index.php index.html;\n\n\tlocation ~ \.php$ {\n\t\tinclude fastcgi-php.conf;\n\t\tinclude fastcgi_params;\n\t\tfastcgi_pass unix:/run/php/php7.0-fpm.sock;\n\t}\n\n\tlocation / {\n\t\tif ($bad_bot = 1) {return 503;}\n\t\tif ($bad_referer) {return 503;}\n\t\tif ($bad_urls1) {return 503;}\n\t\tif ($bad_urls2) {return 503;}\n\t\tif ($bad_urls3) {return 503;}\n\t\tif ($bad_urls4) {return 503;}\n\t\tif ($bad_urls5) {return 503;}\n\t\tif ($bad_urls6) {return 503;}\n\t\ttry_files $uri $uri/ /index.php?$args;\n\t}\n\n\tlocation ~ ^/(status|ping)$ {\n\t\tinclude fastcgi_params;\n\t\tfastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\t\tfastcgi_pass unix:/run/php/php7.0-fpm.sock;\n\t}\n\n}' > /etc/nginx/sites-enabled/default
+echo -e 'server {\n\tlisten 80;\n\tserver_name $host;\n\troot /var/www/$host;\n\tindex index.php index.html;\n\n\tlocation ~ \.php$ {\n\t\tinclude fastcgi-php.conf;\n\t\tinclude fastcgi_params;\n\t\tfastcgi_pass unix:/run/php/php7.0-fpm.sock;\n\t}\n\n\tlocation / {\n\t\tif ($bad_bot = 1) {return 503;}\n\t\tif ($bad_referer) {return 503;}\n\t\tif ($bad_urls1) {return 503;}\n\t\tif ($bad_urls2) {return 503;}\n\t\tif ($bad_urls3) {return 503;}\n\t\tif ($bad_urls4) {return 503;}\n\t\tif ($bad_urls5) {return 503;}\n\t\tif ($bad_urls6) {return 503;}\n\t\ttry_files $uri $uri/ /index.php?$args;\n\t}\n\n\tlocation ~ ^/(status|ping)$ {\n\t\tinclude fastcgi_params;\n\t\tfastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\t\tfastcgi_pass unix:/run/php/php7.0-fpm.sock;\n\t}\n}' > /etc/nginx/sites-enabled/default
 # Create fastcgi.conf
 echo -e 'fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;\nfastcgi_param  QUERY_STRING       $query_string;\nfastcgi_param  REQUEST_METHOD     $request_method;\nfastcgi_param  CONTENT_TYPE       $content_type;\nfastcgi_param  CONTENT_LENGTH     $content_length;\n\nfastcgi_param  SCRIPT_NAME        $fastcgi_script_name;\nfastcgi_param  REQUEST_URI        $request_uri;\nfastcgi_param  DOCUMENT_URI       $document_uri;\nfastcgi_param  DOCUMENT_ROOT      $document_root;\nfastcgi_param  SERVER_PROTOCOL    $server_protocol;\nfastcgi_param  HTTPS              $https if_not_empty;\n\nfastcgi_param  GATEWAY_INTERFACE  CGI/1.1;\nfastcgi_param  SERVER_SOFTWARE    nginx/$nginx_version;\n\nfastcgi_param  REMOTE_ADDR        $remote_addr;\nfastcgi_param  REMOTE_PORT        $remote_port;\nfastcgi_param  SERVER_ADDR        $server_addr;\nfastcgi_param  SERVER_PORT        $server_port;\nfastcgi_param  SERVER_NAME        $server_name;\n\n# PHP only, required if PHP was built with --enable-force-cgi-redirect\nfastcgi_param  REDIRECT_STATUS    200;' > /etc/nginx/fastcgi.conf
 # Create fastcgi-php.conf
@@ -150,20 +150,21 @@ sed -i "s/^;opcache.force_restart_timeout=180/opcache.force_restart_timeout=30/"
 # Reload PHP-FPM installation
 /etc/init.d/php7.0-fpm reload
 # Install a Monit service in order to maintain system fault tolerance
-apt-get install monit -y -q
+# Using ver. 1:5.16-2 because of the bug in the last version https://bugs.launchpad.net/ubuntu/+source/monit/+bug/1786910
+apt-get install monit=1:5.16-2 -y -q
 # Create a full backup of default Monit configuration
 now=$(date +"%Y-%m-%d_%H-%M-%S") 
 mkdir /backup/$now/
 mkdir /backup/$now/monit/
 cp -r /etc/monit/ /backup/$now/monit/
 # Set time interval in which Monit will check the services
-sed -i "s/^.*set daemon 120/set daemon 10/" /etc/monit/monitrc
+sed -i "s/^.*set daemon 120.*/set daemon 10/" /etc/monit/monitrc
 # Set port on which Monit will be listening
-sed -i "s/^#.*set httpd port 2812 and/set httpd port 2812 and/" /etc/monit/monitrc
+sed -i "s/^#.*set httpd port 2812 and.*/set httpd port 2812 and/" /etc/monit/monitrc
 # Set credentials for Monit to autentithicate itself on the server
-sed -i "s/^#.*use address localhost/use address localhost/" /etc/monit/monitrc
-sed -i "s/^#.*allow localhost/allow localhost/" /etc/monit/monitrc
-sed -i "s/^#.*allow admin:monit/allow admin:monit/" /etc/monit/monitrc
+sed -i "s/^#.*use address localhost.*/use address localhost/" /etc/monit/monitrc
+sed -i "s/^#.*allow localhost.*/allow localhost/" /etc/monit/monitrc
+sed -i "s/^#.*allow admin:monit.*/allow admin:monit/" /etc/monit/monitrc
 # Tell monit to not search *.conf files in this directory
 sed -i "s/^.*include \/etc\/monit\/conf-enabled\/\*/#include \/etc\/monit\/conf-enabled\/\*/" /etc/monit/monitrc
 # Add a rule for iptables in order to make Monit be able to work on this port
