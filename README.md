@@ -16,7 +16,7 @@ Every command is well commented so you will know what will happend after each li
 
 ## Requirements
 * Ubuntu 16.04 or later
-* This script utilises root user privileges. If you run it from another user you need to add this user to sudoers group and prepend sudo to all commands in the script
+* This script utilises **root** user privileges. If you run it from another user you need to add this user to sudoers group and prepend sudo to all commands in the script.
 
 ## Usage
 
@@ -31,9 +31,9 @@ chmod +x install.sh
 ./install.sh
 ```
 LEMP will be configured in such a way that it will try to find a folder which is identical to a website name in your /var/www directory.
-For example you created an A-record in your DNS panel where you pointed '@' name of 'test.com' domain to '1.2.3.4' IP adress of your server. IF you will try to access 'test.com' LEMP will try to use index.php / index.html files to open in your /var/www/test.com directory.
+For example you created an A-record in your DNS panel where you pointed '@' name of 'test.com' domain to '1.2.3.4' IP adress of your server. If you will try to access 'test.com' LEMP will try to use index.php / index.html files to open in your /var/www/test.com directory.
 
-MariaDB password is generated using md5 hash of your server hostname and will be put in your /etc/mysql/my.cnf after [client] directive. 
+**MariaDB password** is generated using md5 hash of your server hostname and will be put in your /etc/mysql/my.cnf after [client] directive. 
 
 This script will create 'Hello World' website in /var/www/test.com and phpinfo file at /var/www/test.com/info.php
 
@@ -46,12 +46,12 @@ This will show current Nginx version and all installed Nginx modules.
 php -v
 php -m
 ```
-This will show current PHP-FPM version all installed PHP-FPM modules.
+These will show current PHP-FPM version all installed PHP-FPM modules.
 ```shell
 mysql -v
 EXIT;
 ```
-This will show current MariaDB version and promt EXIT; command if you entered MariaDB shell.
+These will show current MariaDB version and promt EXIT; command if you entered MariaDB shell.
 
 ## Developing
 Please, feel free to fork this repository and add support for your OS. It will greatly help developers who prefer another OS / Platforms. I' am not doing this myself because I found that using prebuilt custom Ubuntu repository makes usage of this script endlessly faster with less head pain then trying to define why Nginx package is not compiling from the source code on another particular OS / Platform.
