@@ -41,6 +41,8 @@ For example you created an A-record in your DNS panel where you pointed '@' name
 * phpinfo(); file at /var/www/test.com/info.php
 * [opcache.php](https://github.com/rlerdorf/opcache-status) at /var/www/test.com/opcache.php
 
+## Verification
+
 You can verify the installation with this info.php or use the following commands:
 ```shell
 nginx -V
