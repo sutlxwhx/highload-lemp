@@ -44,20 +44,20 @@ For example you created an A-record in your DNS panel where you pointed '@' name
 ## Verification
 
 You can verify the installation with the info.php file or using the following commands:
-This will show current Nginx version and all installed Nginx modules.
 ```shell
 nginx -V
 ```
-These will show current PHP-FPM version all installed PHP-FPM modules.
+This will show current Nginx version and all installed Nginx modules.
 ```shell
 php -v
 php -m
 ```
-These will show current MariaDB version and promt EXIT; command if you entered MariaDB shell.
+These will show current PHP-FPM version all installed PHP-FPM modules.
 ```shell
 mysql -v
 EXIT;
 ```
+These will show current MariaDB version and promt EXIT; command if you entered MariaDB shell.
 
 ## Developing
 Please, feel free to fork this repository and add support for your OS. It will greatly help developers who prefer another OS / Platforms. I' am not doing this myself because I found that using prebuilt custom Ubuntu repository makes usage of this script endlessly faster with less head pain then trying to define why Nginx package is not compiling from the source code on another particular OS / Platform.
