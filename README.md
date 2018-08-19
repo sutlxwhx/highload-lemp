@@ -15,7 +15,7 @@ This bash script will install LEMP stack on your Ubuntu and configure it to maxi
 Every command is well commented so you will know what will happend after each line of code. Feel free to modify this bash script and to add new OS / Platform support.
 
 ## Requirements
-* Ubuntu 16.04 or later
+* Ubuntu 16.04 or later (best if it's fresh / clean installation)
 * This script utilises **root** user privileges. If you run it from another user you need to add this user to sudoers group and prepend sudo to all commands in the script.
 
 ## Usage
@@ -37,27 +37,27 @@ For example you created an A-record in your DNS panel where you pointed '@' name
 
 ## Test files that will be created
 
-* 'Hello World' website in /var/www/test.com 
+* "Hello World" website in /var/www/test.com 
 * phpinfo(); file at /var/www/test.com/info.php
 * [opcache.php](https://github.com/rlerdorf/opcache-status) at /var/www/test.com/opcache.php
 
 ## Verification
 
-You can verify the installation with this info.php or use the following commands:
+You can verify the installation with the info.php file or using the following commands:
+This will show current Nginx version and all installed Nginx modules.
 ```shell
 nginx -V
 ```
-This will show current Nginx version and all installed Nginx modules.
+These will show current PHP-FPM version all installed PHP-FPM modules.
 ```shell
 php -v
 php -m
 ```
-These will show current PHP-FPM version all installed PHP-FPM modules.
+These will show current MariaDB version and promt EXIT; command if you entered MariaDB shell.
 ```shell
 mysql -v
 EXIT;
 ```
-These will show current MariaDB version and promt EXIT; command if you entered MariaDB shell.
 
 ## Developing
 Please, feel free to fork this repository and add support for your OS. It will greatly help developers who prefer another OS / Platforms. I' am not doing this myself because I found that using prebuilt custom Ubuntu repository makes usage of this script endlessly faster with less head pain then trying to define why Nginx package is not compiling from the source code on another particular OS / Platform.
