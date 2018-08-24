@@ -19,11 +19,13 @@ apt-get install php7.0-curl php7.0-fpm php7.0-gd php7.0-mbstring php7.0-mcrypt p
 # Create a folder to backup current installation of Nginx && PHP-FPM
 now=$(date +"%Y-%m-%d_%H-%M-%S") 
 mkdir /backup/
-mkdir /backup/$now/nginx/ && mkdir /backup/$now/php/
+mkdir /backup/$now/nginx/ && mkdir /backup/$now/php/ && mkdir /backup/$now/mysql/
 # Create a full backup of previous Nginx configuration
 cp -r /etc/nginx/ /backup/$now/nginx/ 
 # Create a full backup of previous PHP configuration
 cp -r /etc/php/ /backup/$now/php/
+# Create a full backup of previous MySQL configuration
+cp -r /etc/mysql/ /backup/$now/mysql/
 # Delete previous Nginx installation
 apt-get purge nginx-core nginx-common nginx -y -q
 apt-get autoremove -y -q
@@ -37,16 +39,16 @@ systemctl unmask nginx.service
 # Install Brottli package for Nginx
 # https://blog.cloudflare.com/results-experimenting-brotli/
 apt-get install nginx-module-brotli -y -q
-# Disable extrenal access to PHP-FPM scripts
+# Disable external access to PHP-FPM scripts
 sed -i "s/^;cgi.fix_pathinfo=1/cgi.fix_pathinfo=0/" /etc/php/7.0/fpm/php.ini
-# Create an additional configurational folder for Nginx
+# Create an additional configuration folder for Nginx
 mkdir /etc/nginx/conf.d
 # Download list of bad bots, bad ip's and bad referres
 # https://github.com/mitchellkrogza/nginx-badbot-blocker
 wget -O /etc/nginx/conf.d/blacklist.conf https://raw.githubusercontent.com/mariusv/nginx-badbot-blocker/master/blacklist.conf
 wget -O /etc/nginx/conf.d/blockips.conf https://raw.githubusercontent.com/mariusv/nginx-badbot-blocker/master/blockips.conf
 # Create default file for Nginx for where to find new websites that are pointed to this IP
-echo -e 'server {\n\tlisten 80;\n\tserver_name $host;\n\troot /var/www/$host;\n\tindex index.php index.html;\n\n\tlocation ~ \.php$ {\n\t\tinclude fastcgi-php.conf;\n\t\tinclude fastcgi_params;\n\t\tfastcgi_pass unix:/run/php/php7.0-fpm.sock;\n\t}\n\n\tlocation / {\n\t\tif ($bad_bot = 1) {return 503;}\n\t\tif ($bad_referer) {return 503;}\n\t\tif ($bad_urls1) {return 503;}\n\t\tif ($bad_urls2) {return 503;}\n\t\tif ($bad_urls3) {return 503;}\n\t\tif ($bad_urls4) {return 503;}\n\t\tif ($bad_urls5) {return 503;}\n\t\tif ($bad_urls6) {return 503;}\n\t\ttry_files $uri $uri/ /index.php?$args;\n\t}\n\n\tlocation ~ ^/(status|ping)$ {\n\t\tinclude fastcgi_params;\n\t\tfastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n\t\tfastcgi_pass unix:/run/php/php7.0-fpm.sock;\n\t}\n}' > /etc/nginx/sites-enabled/default
+wget -O /etc/nginx/sites-enabled/default.conf https://raw.githubusercontent.com/sutlxwhx/Highload-LEMP-Installation/master/default.conf
 # Create fastcgi.conf
 echo -e 'fastcgi_param  SCRIPT_FILENAME    $document_root$fastcgi_script_name;\nfastcgi_param  QUERY_STRING       $query_string;\nfastcgi_param  REQUEST_METHOD     $request_method;\nfastcgi_param  CONTENT_TYPE       $content_type;\nfastcgi_param  CONTENT_LENGTH     $content_length;\n\nfastcgi_param  SCRIPT_NAME        $fastcgi_script_name;\nfastcgi_param  REQUEST_URI        $request_uri;\nfastcgi_param  DOCUMENT_URI       $document_uri;\nfastcgi_param  DOCUMENT_ROOT      $document_root;\nfastcgi_param  SERVER_PROTOCOL    $server_protocol;\nfastcgi_param  HTTPS              $https if_not_empty;\n\nfastcgi_param  GATEWAY_INTERFACE  CGI/1.1;\nfastcgi_param  SERVER_SOFTWARE    nginx/$nginx_version;\n\nfastcgi_param  REMOTE_ADDR        $remote_addr;\nfastcgi_param  REMOTE_PORT        $remote_port;\nfastcgi_param  SERVER_ADDR        $server_addr;\nfastcgi_param  SERVER_PORT        $server_port;\nfastcgi_param  SERVER_NAME        $server_name;\n\n# PHP only, required if PHP was built with --enable-force-cgi-redirect\nfastcgi_param  REDIRECT_STATUS    200;' > /etc/nginx/fastcgi.conf
 # Create fastcgi-php.conf
@@ -57,7 +59,7 @@ wget -O /etc/nginx/nginx.conf https://raw.githubusercontent.com/sutlxwhx/Highloa
 # Disable memcached vulnerability https://thehackernews.com/2018/03/memcached-ddos-exploit-code.html
 sed -i "s/^-p 11211/#-p 11211/" /etc/memcached.conf
 sed -i "s/^-l 127.0.0.1/#-l 127.0.0.1/" /etc/memcached.conf
-# Increase memcached perfomance by using sockets https://guides.wp-bullet.com/configure-memcached-to-use-unix-socket-speed-boost/
+# Increase memcached performance by using sockets https://guides.wp-bullet.com/configure-memcached-to-use-unix-socket-speed-boost/
 echo -e "-s /tmp/memcached.sock" >> /etc/memcached.conf
 echo -e "-a 775" >> /etc/memcached.conf
 # Restart memcached service
@@ -119,8 +121,7 @@ sed -i "s/^pm.max_spare_servers = .*/;pm.max_spare_servers = 2/" /etc/php/7.0/fp
 sed -i "s/^;pm.max_requests = .*/pm.max_requests = 400/" /etc/php/7.0/fpm/pool.d/www.conf
 # State after what amount of time unused PHP-FPM children will stop
 sed -i "s/^;pm.process_idle_timeout = .*/pm.process_idle_timeout = 10s;/" /etc/php/7.0/fpm/pool.d/www.conf
-# Create a /status path for your webserver in order to track current request
-# You will need configurated as in this script Nginx server block in order for this to work
+# Create a /status path for your webserver in order to track current requests to it
 # Use IP/status to check PHP-FPM stats or IP/status?full&html for more detailed results
 sed -i "s/^;pm.status_path = \/status/pm.status_path = \/status/" /etc/php/7.0/fpm/pool.d/www.conf
 # Create a /ping path for your PHP-FPM installation in order to be able to make heartbeat calls to it
@@ -171,19 +172,19 @@ sed -i "s/^#.*allow admin:monit.*/allow admin:monit/" /etc/monit/monitrc
 sed -i "s/^.*include \/etc\/monit\/conf-enabled\/\*/#include \/etc\/monit\/conf-enabled\/\*/" /etc/monit/monitrc
 # Create a Monit configuration file to watch after PHP-FPM
 # Monit will check the availability of php7.0-fpm.sock
-# And restart php7.0-fpm service if it can't be accesible
-# If Monit tries to many times to restart it withour success it will take a timeout and then procced to restart again
+# And restart php7.0-fpm service if it can't be accessible
+# If Monit tries to many times to restart it withour success it will take a timeout and then proceed to restart again
 echo -e 'check process php7.0-fpm with pidfile /var/run/php/php7.0-fpm.pid\nstart program = "/etc/init.d/php7.0-fpm start"\nstop program = "/etc/init.d/php7.0-fpm stop"\nif failed unixsocket /run/php/php7.0-fpm.sock then restart\nif 5 restarts within 5 cycles then timeout' > /etc/monit/conf.d/php7.0-fpm.conf
 # Create a Monit configuration file to watch after Nginx
 # This one doesn't need Monit to restart it because Nginx is basically unbreakable
 echo -e 'check process nginx with pidfile /var/run/nginx.pid\nstart program = "/etc/init.d/nginx start"\nstop program = "/etc/init.d/nginx stop"' > /etc/monit/conf.d/nginx.conf
 # Create a Monit configuration file to watch after MariaDB
 # Monit will check the availability of mysqld.sock
-# And restart mysql service if it can't be accesible
-# If Monit tries to many times to restart it withour success it will take a timeout and then procced to restart again
+# And restart mysql service if it can't be accessible
+# If Monit tries to many times to restart it without success it will take a timeout and then proceed to restart again
 echo -e 'check process mysql with pidfile /run/mysqld/mysqld.pid\nstart program = "/usr/sbin/service mysql start"\nstop program  = "/usr/sbin/service mysql stop"\nif failed unixsocket /var/run/mysqld/mysqld.sock then restart\nif 5 restarts within 5 cycles then timeout' > /etc/monit/conf.d/mariadb.conf
 # Create a Monit configuration file to watch after SSH
-# This is a fool safe tool if you occasionally restarted ssh proccess and can't get into your server again
+# This is a fool safe tool if you occasionally restarted ssh process and can't get into your server again
 echo -e 'check process sshd with pidfile /var/run/sshd.pid\nstart program "/etc/init.d/ssh start"\nstop program "/etc/init.d/ssh stop"\nrestart program = "/etc/init.d/ssh restart"\nif failed port 22 protocol ssh then restart\nif 5 restarts within 5 cycles then timeout' > /etc/monit/conf.d/sshd.conf
 # Create a Monit configuration file to watch after Memcached
 echo -e 'check process memcached with match memcached\ngroup memcache\nstart program = "/etc/init.d/memcached start"\nstop program = "/etc/init.d/memcached stop"' > /etc/monit/conf.d/memcached.conf
