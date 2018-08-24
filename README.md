@@ -36,8 +36,9 @@ LEMP will be configured in such a way that it will try to find a folder which is
 
 **MariaDB password** is generated using md5 hash of your server hostname and will be put in your /etc/mysql/my.cnf after [client] directive. 
 
-## Test files that will be created
+## Example Files
 
+These files will be created in order to help you understand how this installation works:
 * "Hello World" website in /var/www/test.com 
 * phpinfo(); file at /var/www/test.com/info.php
 * [opcache.php](https://github.com/rlerdorf/opcache-status) at /var/www/test.com/opcache.php
@@ -60,8 +61,8 @@ mysql -v
 EXIT;
 ```
 
-## Developing
-Please, feel free to fork this repository and add support for your OS. It will greatly help developers who prefer another OS / Platforms. I' am not doing this myself because I found that using prebuilt custom Ubuntu repository makes usage of this script endlessly faster with less headache then trying to define why Nginx package is not compiling from the source code on this or that particular OS / Platform.
+## Contributing
+Please, feel free to fork this repository and add support for your OS. It will greatly help developers who prefer another OS. I' am not doing this myself because I found that using prebuilt packages from Ubuntu repository makes usage of this script endlessly faster with less headache then trying to define why Nginx package is not compiling from the source code on this or that particular OS.
 
 ## Licensing
 
