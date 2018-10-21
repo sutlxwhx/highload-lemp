@@ -1,6 +1,6 @@
 # Highload LEMP Installation
 
-This bash script will install LEMP stack on your Ubuntu and configure it to maximize its performance.
+This bash script will install LEMP stack on your Ubuntu and configure it to maximize its performance of website serving.
 
 ## Features
 * All-in-one one "click" installation of the [LEMP](https://en.wikipedia.org/wiki/LAMP_(software_bundle)) environment
